@@ -3,21 +3,23 @@ var express = require("express");
 var path = require("path");
 var cookieParser = require("cookie-parser");
 var logger = require("morgan");
-var session = require("express-session");
 var mongoose = require("mongoose");
+var session = require("express-session");
 var MongoStore = require("connect-mongo");
 var flash = require("connect-flash");
-const passport = require("passport");
+var passport = require("passport");
 
 require("dotenv").config();
+
 var indexRouter = require("./routes/index");
 var usersRouter = require("./routes/users");
 
-mongoose.connect("mongodb://localhost/sampleLogin", (err) => {
-  console.log(err ? err : "Database connected successfully");
+mongoose.connect("mongodb://localhost/github-login", (err) => {
+  console.log(err ? err : "Connected to Database");
 });
 
 require("./modules/passport");
+
 var app = express();
 
 // view engine setup
@@ -30,17 +32,20 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
 
+//add session
 app.use(
   session({
     secret: process.env.SECRET,
-    saveUninitialized: false,
     resave: false,
-    store: new MongoStore({ mongoUrl: "mongodb://localhost/sampleLogin" }),
+    saveUninitialized: false,
+    store: MongoStore.create({ mongoUrl: "mongodb://localhost/github-login" }),
   })
 );
 
 app.use(passport.initialize());
 app.use(passport.session());
+
+app.use(flash());
 
 app.use("/", indexRouter);
 app.use("/users", usersRouter);
